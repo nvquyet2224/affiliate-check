@@ -1,9 +1,14 @@
 export default function handler(req, res) {
   const shop = req.query.shop;
-  const client_id = "6edfe504ad7c29a0e2e1642b7adff90f";
-  
   if (!shop) return res.status(400).send('Missing shop parameter');
 
-  // App đã cài xong (lách luật không cần đổi token), trả user về lại trang admin của app
-  res.redirect(`https://${shop}/admin/apps/${client_id}`);
+  // Trả về giao diện HTML thay vì redirect để tránh bị vòng lặp (loop)
+  res.status(200).setHeader('Content-Type', 'text/html; charset=utf-8');
+  res.send(`
+    <div style="font-family: sans-serif; text-align: center; margin-top: 50px;">
+      <h1 style="color: #008060;">Cài đặt App Proxy Thành Công! 🎉</h1>
+      <p>Hệ thống kết nối ngầm đã được thiết lập. App này không có giao diện quản lý.</p>
+      <p>Anh có thể <b>tắt trang này</b> và ra ngoài web test bình thường nhé!</p>
+    </div>
+  `);
 }
