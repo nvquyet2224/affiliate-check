@@ -1,7 +1,41 @@
+import crypto from 'crypto';
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Chỉ hỗ trợ phương thức POST' });
   }
+
+  // --- BẢO MẬT: XÁC THỰC CHỮ KÝ TỪ SHOPIFY APP PROXY ---
+  const query = req.query;
+  const signature = query.signature;
+  const shopifyApiSecret = process.env.SHOPIFY_API_SECRET;
+
+  if (shopifyApiSecret && signature) {
+    // Clone query để xóa signature trước khi băm
+    const queryWithoutSignature = { ...query };
+    delete queryWithoutSignature.signature;
+
+    // Sắp xếp params và nối lại thành chuỗi
+    const input = Object.keys(queryWithoutSignature)
+      .sort()
+      .map(key => `${key}=${queryWithoutSignature[key]}`)
+      .join('');
+
+    // Băm SHA-256 HMAC
+    const hash = crypto
+      .createHmac('sha256', shopifyApiSecret)
+      .update(input)
+      .digest('hex');
+
+    if (hash !== signature) {
+      console.error('[Security] Invalid signature detected.');
+      return res.status(401).json({ error: 'Unauthorized: Sai chữ ký bảo mật' });
+    }
+  } else if (!shopifyApiSecret) {
+     // Log nhắc nhở nếu quên cài biến môi trường (vẫn cho qua để test tạm nếu cần)
+     console.warn('[Security] Cảnh báo: Chưa cài đặt SHOPIFY_API_SECRET. API đang mở Public!');
+  }
+
   const { email } = req.body;
   if (!email) {
     return res.status(400).json({ error: 'Thiếu thông tin email' });
