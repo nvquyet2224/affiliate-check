@@ -60,14 +60,8 @@ export default async function handler(req, res) {
       }
     });
 
-    // --- MÔ PHỎNG API UPROMOTE kết hợp với METAOBJECT ---
-    // (Giữ lại mockAffiliates cũ nếu cần, hoặc chỉ xài data từ Metaobject)
-    const mockAffiliates = ["vip@gmail.com", "test@evox.ch", "quyet@gmail.com"];
-    
-    // Gộp cả 2 danh sách
-    const allAffiliates = [...new Set([...mockAffiliates, ...metaobjectEmails])];
-    
-    const isAffiliate = allAffiliates.includes(email.toLowerCase().trim());
+    // Kiểm tra xem email khách nhập có nằm trong danh sách kéo từ Metaobject về không
+    const isAffiliate = metaobjectEmails.includes(email.toLowerCase().trim());
 
     return res.status(200).json({
       ok: true,
