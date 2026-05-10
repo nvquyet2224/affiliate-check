@@ -10,7 +10,12 @@ export default async function handler(req, res) {
   const signature = query.signature;
   const shopifyApiSecret = process.env.SHOPIFY_API_SECRET;
 
-  if (shopifyApiSecret && signature) {
+  if (shopifyApiSecret) {
+    if (!signature) {
+      console.error('[Security] Missing signature.');
+      return res.status(401).json({ error: 'Unauthorized: Thiếu chữ ký bảo mật' });
+    }
+
     // Clone query để xóa signature trước khi băm
     const queryWithoutSignature = { ...query };
     delete queryWithoutSignature.signature;
@@ -31,7 +36,7 @@ export default async function handler(req, res) {
       console.error('[Security] Invalid signature detected.');
       return res.status(401).json({ error: 'Unauthorized: Sai chữ ký bảo mật' });
     }
-  } else if (!shopifyApiSecret) {
+  } else {
      // Log nhắc nhở nếu quên cài biến môi trường (vẫn cho qua để test tạm nếu cần)
      console.warn('[Security] Cảnh báo: Chưa cài đặt SHOPIFY_API_SECRET. API đang mở Public!');
   }
